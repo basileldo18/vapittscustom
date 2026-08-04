@@ -36,7 +36,16 @@ try {
     config.credentials = JSON.parse(fs.readFileSync(localCredsPath, 'utf-8'));
   } else if (process.env.GOOGLE_CREDENTIALS_JSON) {
     console.log('[TTS] GOOGLE_CREDENTIALS_JSON env var detected. Loading stringified credentials...');
-    config.credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+    try {
+      const trimmedEnv = process.env.GOOGLE_CREDENTIALS_JSON.trim();
+      config.credentials = JSON.parse(trimmedEnv);
+    } catch (parseErr) {
+      const rawVal = process.env.GOOGLE_CREDENTIALS_JSON;
+      const len = rawVal ? rawVal.length : 0;
+      const lastChars = rawVal ? rawVal.slice(-40) : '';
+      const nearErr = rawVal ? rawVal.slice(Math.max(0, 2320), Math.min(len, 2370)) : '';
+      throw new Error(`JSON format error: ${parseErr.message}. Total length: ${len}. Last 40 chars: "${lastChars}". Chars near 2340: "${nearErr}"`);
+    }
   } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     console.log(`[TTS] GOOGLE_APPLICATION_CREDENTIALS env var detected points to path: ${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
   } else {
