@@ -25,6 +25,7 @@ app.get('/health', (req, res) => {
 
 // Google Cloud Text-to-Speech client initialization
 let ttsClient = null;
+let ttsInitError = null;
 
 try {
   let config = {};
@@ -45,6 +46,7 @@ try {
   ttsClient = new textToSpeech.TextToSpeechClient(config);
   console.log('[TTS] Google Cloud Text-to-Speech client initialized.');
 } catch (err) {
+  ttsInitError = err;
   console.error('[TTS] Failed to initialize GCP Text-to-Speech client:', err.message);
 }
 
@@ -61,9 +63,10 @@ app.post('/tts', async (req, res) => {
   }
 
   if (!ttsClient) {
-    console.error('[TTS Error] Client not initialized.');
+    console.error('[TTS Error] Client not initialized:', ttsInitError?.message);
     return res.status(500).json({
-      error: 'Google Cloud TTS Client is not authenticated. Please add "google-credentials.json" or set GOOGLE_APPLICATION_CREDENTIALS.'
+      error: 'Google Cloud TTS Client is not authenticated. Please add "google-credentials.json" or set GOOGLE_CREDENTIALS_JSON/GOOGLE_APPLICATION_CREDENTIALS.',
+      details: ttsInitError ? ttsInitError.message : 'No credentials provided'
     });
   }
 
