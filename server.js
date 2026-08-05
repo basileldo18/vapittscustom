@@ -115,9 +115,16 @@ app.post('/tts', async (req, res) => {
   console.log(`[TTS] Synthesizing: "${text}" | Voice: ${selectedVoice} | Lang: ${selectedLang} | Rate: ${rateHertz}Hz`);
 
   try {
+    const voiceParams = { languageCode: selectedLang, name: selectedVoice };
+
+    // Laomedeia and other Chirp3 voices require a model specification in the voice parameters
+    if (selectedVoice && (selectedVoice === 'Laomedeia' || selectedVoice.includes('Laomedeia'))) {
+      voiceParams.modelName = 'gemini-2.5-flash-tts';
+    }
+
     const request = {
       input: { text },
-      voice: { languageCode: selectedLang, name: selectedVoice },
+      voice: voiceParams,
       audioConfig: {
         audioEncoding: 'LINEAR16',
         sampleRateHertz: rateHertz
